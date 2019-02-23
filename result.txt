@@ -1,27 +1,27 @@
 
 -- General information --
 
-File name: Service_ElAffar_300816_15.mzML
+File name: Service_ElAffar_300816_14.mzML
 File type: mzML
 
 Peak type (metadata): Unknown
 Peak type (estimated): Peak data
 
-Number of spectra: 24774
-Number of peaks: 6249463
+Number of spectra: 23576
+Number of peaks: 7649621
 
 Ranges:
-  retention time: 0.34 .. 4200.40
-  mass-to-charge: 50.03 .. 5998.57
-  intensity:      366.21 .. 2422992384.00
+  retention time: 0.33 .. 4200.28
+  mass-to-charge: 50.01 .. 5992.68
+  intensity:      338.06 .. 2614787072.00
 
 MS levels: 1, 2
 Number of spectra per MS level:
-  level 1: 4017
-  level 2: 20757
+  level 1: 4910
+  level 2: 18666
 
 Number of chromatograms: 1
-Number of chromatographic peaks: 24774
+Number of chromatographic peaks: 23576
 
 Number of chromatograms per type: 
   total ion current chromatogram:                         1
@@ -59,27 +59,27 @@ Number of chromatograms per type:
 
 -- General information --
 
-File name: Service_ElAffar_300816_14.mzML
+File name: Service_ElAffar_300816_15.mzML
 File type: mzML
 
 Peak type (metadata): Unknown
 Peak type (estimated): Peak data
 
-Number of spectra: 23576
-Number of peaks: 7649621
+Number of spectra: 24774
+Number of peaks: 6249463
 
 Ranges:
-  retention time: 0.33 .. 4200.28
-  mass-to-charge: 50.01 .. 5992.68
-  intensity:      338.06 .. 2614787072.00
+  retention time: 0.34 .. 4200.40
+  mass-to-charge: 50.03 .. 5998.57
+  intensity:      366.21 .. 2422992384.00
 
 MS levels: 1, 2
 Number of spectra per MS level:
-  level 1: 4910
-  level 2: 18666
+  level 1: 4017
+  level 2: 20757
 
 Number of chromatograms: 1
-Number of chromatographic peaks: 23576
+Number of chromatographic peaks: 24774
 
 Number of chromatograms per type: 
   total ion current chromatogram:                         1
