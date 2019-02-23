@@ -1,0 +1,116 @@
+
+-- General information --
+
+File name: Service_ElAffar_300816_15.mzML
+File type: mzML
+
+Peak type (metadata): Unknown
+Peak type (estimated): Peak data
+
+Number of spectra: 24774
+Number of peaks: 6249463
+
+Ranges:
+  retention time: 0.34 .. 4200.40
+  mass-to-charge: 50.03 .. 5998.57
+  intensity:      366.21 .. 2422992384.00
+
+MS levels: 1, 2
+Number of spectra per MS level:
+  level 1: 4017
+  level 2: 20757
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 24774
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+
+
+-- General information --
+
+File name: Service_ElAffar_300816_13.mzML
+File type: mzML
+
+Peak type (metadata): Unknown
+Peak type (estimated): Peak data
+
+Number of spectra: 22126
+Number of peaks: 6616133
+
+Ranges:
+  retention time: 0.33 .. 4200.13
+  mass-to-charge: 50.01 .. 5980.61
+  intensity:      335.77 .. 2115994752.00
+
+MS levels: 1, 2
+Number of spectra per MS level:
+  level 1: 4880
+  level 2: 17246
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 22126
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+
+
+-- General information --
+
+File name: Service_ElAffar_300816_14.mzML
+File type: mzML
+
+Peak type (metadata): Unknown
+Peak type (estimated): Peak data
+
+Number of spectra: 23576
+Number of peaks: 7649621
+
+Ranges:
+  retention time: 0.33 .. 4200.28
+  mass-to-charge: 50.01 .. 5992.68
+  intensity:      338.06 .. 2614787072.00
+
+MS levels: 1, 2
+Number of spectra per MS level:
+  level 1: 4910
+  level 2: 18666
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 23576
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+
+
+-- General information --
+
+File name: Service_ElAffar_300816_16.mzML
+File type: mzML
+
+Peak type (metadata): Unknown
+Peak type (estimated): Peak data
+
+Number of spectra: 28612
+Number of peaks: 7163997
+
+Ranges:
+  retention time: 0.33 .. 4200.38
+  mass-to-charge: 50.03 .. 5956.70
+  intensity:      329.66 .. 3218830592.00
+
+MS levels: 1, 2
+Number of spectra per MS level:
+  level 1: 4393
+  level 2: 24219
+
+Number of chromatograms: 1
+Number of chromatographic peaks: 28612
+
+Number of chromatograms per type: 
+  total ion current chromatogram:                         1
+
+
