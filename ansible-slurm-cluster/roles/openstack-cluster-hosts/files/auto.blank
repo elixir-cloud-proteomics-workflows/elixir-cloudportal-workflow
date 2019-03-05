@@ -1,0 +1,12 @@
+[cluster_masters]
+
+
+[cluster_nodes]
+
+
+[cluster:children]
+cluster_masters
+cluster_nodes
+
+[cluster:vars]
+ansible_ssh_common_args='-o ProxyCommand="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i <bastion_key> -W %h:%p -q <bastion_user>@<bastion_ip>" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

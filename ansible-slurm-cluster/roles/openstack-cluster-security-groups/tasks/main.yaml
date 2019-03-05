@@ -1,0 +1,98 @@
+- name: Create/Delete security group for cluster
+  tags: bootstrap
+  os_security_group:
+    name: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-cluster', true) }}"
+    state: present  
+    # should always be present
+  when: state == "present"
+
+- name: Allow traffic to and from anywhere
+  tags: bootstrap
+  os_security_group_rule:
+    security_group: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-cluster', true) }}"
+    remote_ip_prefix: 0.0.0.0/0
+  when: state == "present"
+
+- name: Create/Delete security group for gluster
+  tags: bootstrap
+  os_security_group:
+    name: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-gluster', true) }}"
+    state: present  
+    # should always be present
+  when: state == "present"
+
+- name: Allow tcp 6817-6818
+  tags: bootstrap
+  os_security_group_rule:
+    security_group: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-gluster', true) }}"
+    direction: ingress
+    protocol: tcp
+    port_range_min: 6817
+    port_range_max: 6818
+    remote_ip_prefix: 0.0.0.0/0
+  when: state == "present"
+
+- name: Allow tcp 7321
+  tags: bootstrap
+  os_security_group_rule:
+    security_group: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-gluster', true) }}"
+    direction: ingress
+    protocol: tcp
+    port_range_min: 7321
+    port_range_max: 7321
+    remote_ip_prefix: 0.0.0.0/0
+  when: state == "present"
+
+- name: Allow tcp 24007-24008
+  tags: bootstrap
+  os_security_group_rule:
+    security_group: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-gluster', true) }}"
+    direction: ingress
+    protocol: tcp
+    port_range_min: 24007
+    port_range_max: 24008
+    remote_ip_prefix: 0.0.0.0/0
+  when: state == "present"
+
+- name: Allow tcp 38465-38466
+  tags: bootstrap
+  os_security_group_rule:
+    security_group: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-gluster', true) }}"
+    direction: ingress
+    protocol: tcp
+    port_range_min: 38465
+    port_range_max: 38466
+    remote_ip_prefix: 0.0.0.0/0
+  when: state == "present"
+
+- name: Allow tcp 49152-49162
+  tags: bootstrap
+  os_security_group_rule:
+    security_group: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-gluster', true) }}"
+    direction: ingress
+    protocol: tcp
+    port_range_min: 49152
+    port_range_max: 49162
+    remote_ip_prefix: 0.0.0.0/0
+  when: state == "present"
+
+- name: Allow udp 24007-24008
+  tags: bootstrap
+  os_security_group_rule:
+    security_group: "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-gluster', true) }}"
+    direction: ingress
+    protocol: udp
+    port_range_min: 24007
+    port_range_max: 24008
+    remote_ip_prefix: 0.0.0.0/0
+  when: state == "present"
+
+#~ Egress	IPv6	Any	Any	::/0	-	
+#~ Egress	IPv4	Any	Any	0.0.0.0/0	-	
+#~ Ingress	IPv4	TCP	6817	0.0.0.0/0	-	
+#~ Ingress	IPv4	TCP	6818	0.0.0.0/0	-	
+#~ Ingress	IPv4	TCP	7321	0.0.0.0/0	-	
+#~ Ingress	IPv4	TCP	24007 - 24008	0.0.0.0/0	-	
+#~ Ingress	IPv4	TCP	38465 - 38466	0.0.0.0/0	-	
+#~ Ingress	IPv4	TCP	49152 - 49162	0.0.0.0/0	-	
+#~ Ingress	IPv4	UDP	24007 - 24008	0.0.0.0/0	-	

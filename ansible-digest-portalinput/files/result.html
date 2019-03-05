@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+	<head>
+		<meta charset="utf-8">
+		
+		<!-- D3.js -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+
+		<link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+
+		<style>
+			html { font-size: 92.5%; } 
+			.colorStatus {
+				font-family: 'Open Sans';
+			    font-size: 2rem;
+			    fill: #989898;
+			    font-weight: 300;
+			  }
+      
+      body {
+        margin: 0;
+        background: #222;
+        min-width: 960px;
+      }
+
+      rect {
+        fill: none;
+        pointer-events: all;
+      }
+
+      circle {
+        fill: none;
+        stroke-width: 2.5px;
+      }
+		</style>
+	</head>	
+<body>
+  
+<style>
+
+path {
+  fill: none;
+  stroke: #000;
+  stroke-width: 3px;
+}
+
+circle {
+  fill: steelblue;
+  stroke: #fff;
+  stroke-width: 3px;
+}
+
+</style>
+  
+<div id="cloudChart" style="text-align: center;"></div>  
+
+<script language="javascript" type="text/javascript">
+
+var points = [
+[320.00,96.00],
+[390.69,96.00],
+[448.00,153.31],
+[448.00,224.00],
+[448.00,225.94],
+[447.50,227.75],
+[447.44,229.69],
+[484.94,242.75],
+[512.00,278.06],
+[512.00,320.00],
+[512.00,373.00],
+[469.00,416.00],
+[416.00,416.00],
+[96.00,416.00],
+[43.00,416.00],
+[0.00,373.00],
+[0.00,320.00],
+[0.00,267.00],
+[43.00,224.00],
+[96.00,224.00],
+[97.97,224.00],
+[99.81,224.44],
+[101.72,224.56],
+[114.78,187.06],
+[150.06,160.00],
+[192.00,160.00],
+[197.78,160.00],
+[203.38,160.72],
+[208.84,161.69],
+[230.78,122.69],
+[272.06,96.00],
+[320.00,96.00]
+];
+
+var svg = d3.select("body").append("svg")
+    .attr("width", 640)
+    .attr("height", 640);
+
+var path = svg.append("path")
+    .data([points])
+    .attr("d", d3.svg.line().interpolate("basis"))
+    .attr("opacity", 0.1);
+
+
+var circle = svg.append("circle")
+    .attr("r", 13)
+    .attr("transform", "translate(" + points[0] + ")")
+		.attr("opacity", 0.1);
+  
+var i = 0;
+transition();
+
+function transition() {
+  circle.transition()
+      .attrTween("transform", translateAlong(path.node()))
+      .each("end", transition)
+      .duration(10000);
+}
+
+// Returns an attrTween for translating along the specified path element.
+function translateAlong(path) {
+  var l = path.getTotalLength();
+  return function(d, i, a) {
+    return function(t) {
+      var p = path.getPointAtLength(t * l);
+      //console.log(p)
+      svg.insert("circle", "rect")
+        .attr("cx", p.x)
+        .attr("cy", p.y)
+        .attr("r", 1e-6)
+        .style("stroke", d3.hsl((i = (i + 1) % 360), 5.0, .5))
+        .style("stroke-opacity", 1)
+      .transition()
+        .duration(10000)
+        .ease(Math.sqrt)
+        .attr("r", 40)
+        .style("stroke-opacity", 1e-3)
+        .remove();
+
+      return "translate(" + p.x + "," + p.y + ")";
+    };
+  };
+}
+
+</script>

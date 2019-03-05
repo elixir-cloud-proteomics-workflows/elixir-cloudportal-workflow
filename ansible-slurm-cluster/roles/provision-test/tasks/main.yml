@@ -1,0 +1,14 @@
+---
+- name: Initial connection block
+  block:
+    - name: Wait 20 second intervals, but only start checking after 3 seconds
+      wait_for_connection:
+        delay: 3
+        timeout: 20
+  rescue:
+    - name: Try to install python 2, when ansible is not able to connect
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+- name: test availability
+  ping:
+    #data: crash

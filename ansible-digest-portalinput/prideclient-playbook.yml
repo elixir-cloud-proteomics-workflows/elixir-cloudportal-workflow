@@ -1,0 +1,65 @@
+---
+- name: Set type of playbook execution as fact
+  hosts: all
+  tasks:
+    - set_fact: 
+        ansiblepurpose: "{{ lookup('env','ansible_purpose') | default('cluster', true) }}"   # call ansible with -e "purpose=image other_variable=foo"
+        clustername: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}"
+
+- name: 'Copy PRIDE client'
+  hosts: cluster_masters
+  tasks:
+    - copy: src=pride-cloud-client.py dest=/tmp/pride-cloud-client.py
+    - copy: src=RedisQueue.py dest=/tmp/RedisQueue.py
+
+# TODO this should be a container (otherwise needs pip installs)!
+- name: Digest input
+  hosts: cluster_masters
+  tasks:
+    - find:
+        paths: /mnt/gluster/  # this would change to /home/ubuntu if ansible playbook is called w/o --become-user=root 
+        patterns: '*.url,*.res'
+      register: files_to_delete
+    - debug:
+        msg: "{{ files_to_delete.files }}"
+    - file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ files_to_delete.files }}"
+
+      # TODO this sometimes breaks because of docker image load - repeat in case of failure?
+    - shell: "singularity exec --bind /mnt/gluster:/mnt/gluster docker://mwalzer/prideapiclient:v0.0.2 \
+                python /usr/local/bin/pride-cloud-client -p {{ lookup('env','PXD') }} \
+                -d {{ lookup('env','PORTAL_DEPLOYMENT_REFERENCE') }} \
+                --redis_host {{ lookup('env','REDIS_HOST') }} \
+                --redis_port {{ lookup('env','REDIS_PORT') }} \
+                --redis_db {{ lookup('env','REDIS_DB') }} \
+                --timeout 10"
+      args:
+        chdir: /mnt/gluster
+
+- name: Copy progress bar result
+  hosts: cluster_masters
+  tasks:
+    - copy: src=result.html dest=/tmp/progress.html
+          
+- name: Upload progress bar result
+  hosts: cluster_masters
+  tasks:
+    - command: "cat /mnt/gluster/result_put.res"
+      register: up
+    - shell: "curl -k -X PUT -T '/tmp/progress.html' '{{ up.stdout }}'"
+    # - debug:
+    #     msg: "curl -k -X PUT -T '/tmp/progress.html' '{{ up.stdout }}'"
+- name: Report result URL
+  hosts: cluster_masters
+  tasks:
+    - fetch:
+        src: "/mnt/gluster/result_get.res"
+        dest: "{{ lookup('env','DEPLOYMENTSFOLDER') }}/result_get.res"
+    - command: "cat /mnt/gluster/result_get.res"
+      register: res
+    - debug:
+        msg: "Result: {{ res.stdout }}" 
+
+...

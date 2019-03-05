@@ -1,0 +1,26 @@
+- name: show ssh_host
+  debug:
+    msg: "{{ ansible_ssh_host }}"
+
+- name: show host
+  debug:
+    msg: "{{ ansible_host }}"
+
+#waiting for ssh is done in the openstack roles anyway ...
+# first timeout to wait for ssh to come available...
+# wait 300 seconds for port 22 to become open and contain "OpenSSH", don't assume the inventory_hostname is resolvable
+# and don't start checking for 10 seconds
+#- name: Wait for ssh to become available 
+#  local_action: 
+#    wait_for port="22" host="{{ ansible_ssh_host | default(inventory_hostname) }}" search_regex="OpenSSH" delay=10
+#  delegate_to: "{{ groups.master[0] }}"
+#  when: state == "present"
+
+#seems this is what ansible is instructed to do before instance is deemed ready (some gzip going on, taking quite some time...)
+- name: Wait for cloud-init to finish
+  raw: while ! test -f /var/lib/cloud/instance/boot-finished; do sleep 1; done 
+  tags:
+    - skip_ansible_lint
+
+- name: Setup
+  action: setup

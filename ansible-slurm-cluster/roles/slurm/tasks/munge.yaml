@@ -1,0 +1,49 @@
+---
+# install munge
+    # - name: '[Ubuntu] Apt install munge'
+    #   apt: name=munge update_cache=yes cache_valid_time=3600
+    #   when: ansible_os_family == "Debian"
+    #   ignore_errors: yes
+    #   register: munge_adduser_result
+
+    # - name: "[Ubuntu] Edit munge postinst script to avoid adduser problem"
+    #   lineinfile:
+    #     dest: '/var/lib/dpkg/info/munge.postinst'
+    #     regexp: '      adduser --quiet --system --group --no-create-home munge'
+    #     line: '      adduser --quiet --system --group --no-create-home munge || true'
+    #   when: munge_adduser_result|failed
+
+    # - name: '[Ubuntu] Fix munge installation'
+    #   command: apt-get install -f
+    #   when: munge_adduser_result|failed
+    #   ignore_errors: yes
+    #   register: munge_install_result
+
+    - name: Set correct permissions to munge log
+      file: path=/var/log/munge mode=0700
+
+    - name: Set correct permissions to log
+      file: path=/var/log mode=0755
+
+    # # Fix to problem in ubuntu 16 with slurm pkg
+    # - block:
+    #     - name: Create Munge key
+    #       shell: create-munge-key < /dev/null creates=/etc/munge/munge.key
+
+    #     - name: Set correct permissions to munge.key
+    #       file: path=/etc/munge/munge.key owner=munge group=munge mode=0400
+
+    #     - name: Apt install munge (again)
+    #       apt: name=munge
+
+    #     - name: Remove the key
+    #       file: path=/etc/munge/munge.key state=absent
+    #   when: munge_install_result|failed
+
+    - shell: echo -n "{{ slurm_password }}" | sha512sum | cut -d' ' -f1 >/etc/munge/munge.key
+      when: not munge_key.stat.exists
+
+    - name: Set correct permissions to munge.key
+      file: path=/etc/munge/munge.key owner="{{munge_user}}" group="{{munge_user}}" mode=0400
+
+    - service: name=munge state=restarted

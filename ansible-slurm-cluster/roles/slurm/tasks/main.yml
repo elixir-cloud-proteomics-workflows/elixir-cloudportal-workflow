@@ -1,0 +1,65 @@
+---
+# dependencies
+# - name: '[Ubuntu] Set Debian facts'
+#   set_fact:
+#     SLURM_VERSION: "{{ slurm_version }}"
+#     PKG_FOLDER: "Debian"
+#   when: ansible_os_family == "Debian"
+    
+# - name: '[Ubuntu] install slurm dependencies'
+#   apt: name=libmunge2,libpq5,openssl-blacklist,libmunge-dev,gcc,make,bzip2 update_cache=yes cache_valid_time=3600
+
+# install munge
+- name: Start Munge service
+  service: name=munge state=started
+  register: munge_installed
+  ignore_errors: yes
+
+- stat: path=/etc/munge/munge.key
+  register: munge_key
+
+- include: munge.yaml
+#   when: munge_installed|failed
+
+# # compile and install slurm
+# - name: '[Ubuntu] Copy required packages'
+#   copy: src={{PKG_FOLDER}}/{{item}} dest=/tmp/slurm.tar.bz2
+#   with_items:
+#     - slurm-{{slurm_version}}.tar.bz2
+
+# - name: '[Ubuntu] decompress SLURM package'
+#   command: tar xjf slurm.tar.bz2 chdir=/tmp creates=/tmp/slurm-{{ slurm_version }}
+
+# - name: '[Ubuntu] configure SLURM'
+#   command: ./configure chdir=/tmp/slurm-{{ slurm_version }} creates=/tmp/slurm-{{ slurm_version }}/config.log
+
+# - name: '[Ubuntu] compile (make) SLURM'
+#   command: make chdir=/tmp/slurm-{{ slurm_version }} creates=/tmp/slurm-{{ slurm_version }}/src/slurmctld
+
+# - name: '[Ubuntu] install SLURM'
+#   command: make install chdir=/tmp/slurm-{{ slurm_version }} creates=/usr/local/bin/srun
+
+- name: Set SLURM conf file path as fact
+  set_fact:
+    SLURM_CONF: "/usr/local/etc/slurm.conf"
+    SLURM_SERVICE: "slurmctld"
+    SLURM_DAEMON: "slurmd"
+  
+- name: create slurm group
+  group: name="{{slurm_user}}" gid="{{slurm_uid}}" system=yes state=present
+
+- name: create slurm user
+  user: name="{{slurm_user}}" uid="{{slurm_uid}}" shell=/bin/bash system=yes group="{{slurm_user}}"
+
+- name: create folders used by SLURM and set slurm owner
+  file: path={{item}} state=directory owner=slurm group=slurm
+  with_items:
+    - /var/spool/slurm
+    - /var/spool/slurm/d
+    - /var/log/slurm
+    - /var/slurm/checkpoint
+    - /etc/slurm
+
+- include: "{{slurm_type_of_node}}.yaml"
+
+

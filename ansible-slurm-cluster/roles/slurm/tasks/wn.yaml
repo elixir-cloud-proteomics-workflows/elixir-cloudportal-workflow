@@ -1,0 +1,41 @@
+---
+- service: name=firewalld state=stopped
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int >= 7
+  ignore_errors: yes
+
+- name: Create the slurm.conf file
+  template: dest={{ SLURM_CONF }} src=slurm.conf.j2
+  notify: reload slurm daemon
+  when: inventory_hostname != slurm_server_name 
+
+- name: Copy the service files
+  become: true
+  copy:
+    src: slurmd.service
+    dest: /etc/systemd/system/slurmd.service
+    owner: slurm
+    group: slurm
+    mode: u+rw,g-wx,o-wx
+
+
+# start SLURM daemon
+- name: Start SLURM daemon service
+  become: true
+  # become_user: slurm
+  # command: slurmctld
+  systemd:
+    name: slurmd
+    state: started
+    enabled: yes
+
+- name: Wait Slurm daemon in the front-end to be up
+  wait_for:
+    host: "{{slurm_server_ip}}"
+    port: 6817
+
+- name: allow the slurm user to acces the slurm logs
+  file: path=/tmp/slurmd.log mode=0644
+
+- name: Reconfigure SLURM
+  command: scontrol reconfigure
+

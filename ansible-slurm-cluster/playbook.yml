@@ -1,0 +1,234 @@
+---
+- name: Set type of playbook execution as fact
+  hosts: all
+  tasks:
+    - set_fact: 
+        ansiblepurpose: "{{ lookup('env','ansible_purpose') | default('cluster', true) }}"   # call ansible with -e "purpose=image other_variable=foo"
+        clustername: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}"
+
+- name: Prepare network access
+  # will read ENV to get 
+  hosts: localhost
+  roles:
+    - openstack-network
+
+- name: Launch instances
+  hosts: localhost
+  pre_tasks:
+    - name: Set variables
+      set_fact:
+        name: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}"
+        state: "{{ lookup('env','STATE') | default('present', true) }}"
+        node_count: "{{ lookup('env', 'NODE_COUNT') | default(3, true) }}"
+        master_count: "{{ lookup('env', 'MASTER_COUNT') | default(1, true) }}"
+        deploymentsfolder: "{{ lookup('env', 'DEPLOYMENTSFOLDER') | default('/root/app/deployment_xyz', true) }}"
+    - name: create .ssh on local host if it does not exisit
+      file:
+        path: ~/.ssh
+        state: directory
+    - name: prepare known_hosts on local system to avoid inaccessibilities
+      file:
+        path: ~/.ssh/known_hosts
+        state: touch
+        mode: 0600    
+  roles:
+    - { role: openstack-cluster-security-groups, when: state == 'present' }
+    - openstack-cluster-hosts
+    - { role: openstack-cluster-security-groups, when: state == 'absent' }
+
+# - name: Write the new instance host keys to known_hosts
+#   hosts: localhost
+#   gather_facts: no
+#   tasks:
+#     - command: "ssh-keyscan  -H {{ hostvars[item]['ansible_host'] }}"
+#       with_items: 
+#         - "{{ groups.cluster_masters }}"
+#         - "{{ groups.cluster_nodes }}"
+#         - "{{ groups.bastions }}"
+#       register: new_host_fingerprint
+#       delegate_to: bastion
+#       when: state == "present"
+#     - lineinfile:
+#         dest: ~/.ssh/known_hosts
+#         line: "{{ item }}"
+#       with_items: new_host_fingerprint.stdout_lines
+#       when: state == "present"
+
+- name: Test availability through bastion and make sure python is available  # TODO this fails the first time on occasion WTF WHY?! And does it really take that long? Longer than terraform?
+  gather_facts: no
+  hosts: cluster_masters:cluster_nodes
+  become: yes
+  roles:
+    - provision-test
+
+- name: Set hostname 
+  hosts: cluster_masters:cluster_nodes
+  become: yes
+  roles:
+    - proper-hostname
+
+- name: Set hostnames properly
+  hosts: cluster_masters:cluster_nodes
+  become: yes
+  roles:
+     - stouts.hostname
+
+- name: Complete /etc/hosts with IP address of all hosts
+  hosts: cluster_masters:cluster_nodes
+  become: yes
+  tasks:
+    - lineinfile:
+        dest: /etc/hosts
+        regexp: '.*{{ item }}$'
+        line: "{{ hostvars[item]['ansible_host'] }} {{item}}"
+        state: present
+      when: hostvars[item]['ansible_host'] is defined
+      with_items: "{{ groups.cluster_masters + groups.cluster_nodes }}"
+
+- name: Print currently known cluster_masters hostvar info 
+  hosts: localhost
+  gather_facts: yes
+  vars:
+     clustername: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}" 
+  tasks:
+  - name: Display all variables/facts known for a host
+    debug:
+      var: hostvars
+      verbosity: 4
+
+# - name: Set up docker 
+#   hosts: cluster_masters:cluster_nodes
+#   become: yes
+#   vars: {docker_edition: 'ce', docker_package: "docker-{{ docker_edition }}", docker_package_state: present}
+#   roles:
+#     - geerlingguy.docker
+
+# - name: Install java
+#   hosts: cluster_masters:cluster_nodes
+#   become: yes
+#   roles:
+#     - geerlingguy.java
+
+# - name: Install nextflow
+#  become: yes
+#  hosts: cluster_masters
+#  tasks:
+#    - name: curl nextflow 
+#      shell: "curl -s https://get.nextflow.io | bash"
+#      register: nextflowcurloutput
+
+- name: Set hostnames properly
+  hosts: cluster_masters:cluster_nodes
+  become: yes
+  roles:
+    - stouts.hostname
+
+- name: Complete /etc/hosts with IP address of all hosts
+  hosts: cluster_masters:cluster_nodes
+  become: yes
+  tasks:
+    - lineinfile:
+        dest: /etc/hosts
+        regexp: '.*{{ item }}$'
+        line: "{{ hostvars[item]['ansible_host'] }} {{item}}"
+        state: present
+      when: hostvars[item]['ansible_host'] is defined
+      with_items: "{{ groups.all }}"
+
+# - name: Get GlusterFS necessities 
+#   hosts: cluster_masters:cluster_nodes
+#   become: yes
+#   vars_files:
+#     - ports.yml
+#   roles:
+#     - geerlingguy.glusterfs
+#     - geerlingguy.firewall
+  
+# https://docs.gluster.org/en/latest/Quick-Start-Guide/Quickstart/#using-ansible-to-deploy-and-manage-glusterfs
+
+- name: Configure GlusterFS
+  hosts: cluster_masters:cluster_nodes
+  become: yes
+  gather_facts: yes
+  vars:
+    state: "{{ lookup('env','STATE') | default('present', true) }}"
+  vars_files:
+    - gluster_configuration.yml
+  tasks:
+    - include: configure_gluster.yml
+    #   when: ansiblepurpose == "cluster"
+      when: state == "present"
+  ignore_errors: yes
+
+# - name: Set NTP
+#   hosts: cluster_masters:cluster_nodes
+#   become: yes
+#   roles:
+#     - role: geerlingguy.ntp
+#       vars: 
+#         ntp_timezone: Europe/London
+
+- name: debug slurm conf
+  hosts: localhost
+  vars:
+    clustername: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}" 
+    clusternamenode: "{{ clustername }}-cluster-node"
+    state: "{{ lookup('env','STATE') | default('present', true) }}"
+  tasks:
+    - debug:
+        msg: "{{ item }}"
+      with_items: 
+        - "{{ clusternamenode }}"
+        - "{{ groups['cluster_nodes'] | list }}"
+        - "{{ groups['cluster_nodes'] | map('extract', hostvars, 'ansible_hostname') | select('search', clusternamenode)  }}"
+        - "{{ groups['cluster_nodes'] | map('extract', hostvars, 'ansible_hostname') | select('search', clusternamenode) | list  }}"
+      when: state == "present"
+
+# clusternamenode and slurm_vnode_prefix must be the same and reflect the selection of nodes by hostname
+# In this setup, it is clustername "{{ name }}" connected by a dash with the node designation prefix "cluster-node"
+# which is hardcoded in the openstack-cluster-hosts role
+
+- name: Set up SLURM masters
+  hosts: cluster_masters
+  become: yes
+  gather_facts: yes
+  vars:
+    state: "{{ lookup('env','STATE') | default('present', true) }}"
+    clustername: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}" 
+  roles:
+  # - role: 'grycap.slurm'
+  # - role: 'indigo-dc.slurm'
+  - role: slurm
+    vars:
+      slurm_type_of_node: 'front'
+      slurm_server_ip: "{{ hostvars[groups['cluster_masters'][0]]['ansible_host'] }}"
+      slurm_server_name: "{{  hostvars[groups['cluster_masters'][0]]['ansible_hostname']  }}"
+      clusternamenode: "{{ clustername }}-cluster-node"
+      slurm_wn_nodenames: "{{ groups['cluster_nodes'] | map('extract', hostvars, 'ansible_hostname') | select('search', clusternamenode) | list  }}"
+      slurm_vnode_prefix: "{{ clustername }}-cluster-node"
+      # ntp_config_server: [2.ubuntu.pool.ntp.org, 1.ubuntu.pool.ntp.org]
+    # when: ansiblepurpose == "cluster"
+    when: state == "present"
+
+- name: Set up SLURM nodes
+  hosts: cluster_nodes
+  become: yes
+  gather_facts: yes
+  vars:
+    state: "{{ lookup('env','STATE') | default('present', true) }}"
+    clustername: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}" 
+  roles:
+  # - role: 'grycap.slurm'
+  # - role: 'indigo-dc.slurm'
+  - role: slurm
+    vars:
+      slurm_type_of_node: 'wn'
+      slurm_server_ip: "{{ hostvars[groups['cluster_masters'][0]]['ansible_host'] }}"
+      slurm_server_name: "{{ hostvars[groups['cluster_masters'][0]]['ansible_hostname'] }}"
+      slurm_vnode_prefix: "{{ clustername }}-cluster-node-" 
+      ntp_config_server: [2.ubuntu.pool.ntp.org, 1.ubuntu.pool.ntp.org]
+    # when: ansiblepurpose == "cluster"
+    when: state == "present"
+
+# https://wiki.fysik.dtu.dk/niflheim/Slurm_configuration
+...

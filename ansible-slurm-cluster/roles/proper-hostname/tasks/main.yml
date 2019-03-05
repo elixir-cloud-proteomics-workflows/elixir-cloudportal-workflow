@@ -1,0 +1,15 @@
+---
+- name: Set hostnames properly
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Complete /etc/hosts with IP address of all hosts
+  lineinfile:
+        dest: /etc/hosts
+        regexp: '.*{{ inventory_hostname }}$'
+        line: "{{ hostvars[inventory_hostname]['ansible_host'] }} {{ inventory_hostname }}"
+        state: present
+#   when: "hostvars[{{ inventory_hostname }}].private_ipv4 is defined"
+    #   with_items: 
+    #     - "{{ groups.k8s_masters }}"
+    #     - "{{ groups.k8s_nodes }}"

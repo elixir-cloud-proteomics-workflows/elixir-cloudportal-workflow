@@ -1,0 +1,16 @@
+{
+  "applicationName": "PRIDE-QC-Cloud",
+  "contactEmail": "walzer@ebi.ac.uk",
+  "about": "First PRIDE QC QCloud app (Fileinfo demo)",
+  "version": "0.1",
+  "cloudProviders": [
+    {
+     "cloudProvider": "OSTACK",
+     "path": "ostack",
+     "inputs":[]
+    }
+  ],
+  "inputs": ["PXD"],
+  "deploymentParameters": [],
+  "outputs": ["URL"]
+}

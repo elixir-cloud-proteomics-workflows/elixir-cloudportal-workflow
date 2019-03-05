@@ -1,0 +1,35 @@
+---
+- name: Copy workflow
+  hosts: cluster_masters
+  tasks:
+    - copy: src=pxd2qc.nf dest=/mnt/gluster/pxd2qc.nf
+    - copy: src=mynextflow.config dest=/mnt/gluster/mynextflow.config
+
+# TODO this should be a container (otherwise needs pip installs)!
+- name: Process workflow
+  hosts: cluster_masters
+  tasks:
+    - shell: "cat mynextflow.config"
+      args:
+        chdir: /mnt/gluster
+      register: conf
+    - debug:
+        msg: "Result: {{ conf.stdout }}" 
+    - shell: "nextflow run pxd2qc.nf -c mynextflow.config -profile cluster --input '/mnt/gluster/*.url'"
+      args:
+        chdir: /mnt/gluster
+      # better start the whole playbook asynchron.
+      #async: 86400               # 60*60*24 – 1 day
+      #poll: 0
+      register: nf
+    - debug:
+        msg: "Result: {{ nf.stdout }}" 
+
+- name: Upload result
+  hosts: cluster_masters
+  tasks:
+    - command: "cat /mnt/gluster/result_put.res"
+      register: up
+    - shell: "curl -k -X PUT -T '/mnt/gluster/result.txt' '{{ up.stdout }}'"
+
+...

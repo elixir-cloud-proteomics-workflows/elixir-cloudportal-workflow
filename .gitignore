@@ -27,3 +27,5 @@ myREADME.md
 \.nextflow\.log*
 \.nextflow
 work
+
+testdeployment/

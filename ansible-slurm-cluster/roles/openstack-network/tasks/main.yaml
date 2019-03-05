@@ -1,0 +1,4 @@
+- name: Get cloud configuration
+  tags: bootstrap
+  os_client_config:
+

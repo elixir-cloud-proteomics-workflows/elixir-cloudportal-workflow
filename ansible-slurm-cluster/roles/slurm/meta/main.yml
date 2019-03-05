@@ -1,0 +1,17 @@
+galaxy_info:
+  author: mwalzer
+  description: EBI
+  company:  EBI
+  license: Apache
+  min_ansible_version: 2.4
+  platforms:
+  - name: Ubuntu
+    versions:
+    # - trusty
+    - xenial
+  galaxy_tags:
+    - slurm
+    - lrms
+# dependencies:
+#   - { role: 'grycap.ntp', ntp_config_server: [2.ubuntu.pool.ntp.org, 1.ubuntu.pool.ntp.org] }
+
