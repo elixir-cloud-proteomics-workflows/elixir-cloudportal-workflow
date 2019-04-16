@@ -31,8 +31,7 @@ echo "cwd=$PWD"
 echo "PXD=$PXD"
 
 # Deploy cluster
-ansible-playbook --flush-cache -b --become-user=root \
-    $APP/ansible-slurm-cluster/playbook.yml -e "{'host_key_checking':false }"
+ansible-playbook --flush-cache $APP/ansible-slurm-cluster/playbook.yml -e "{'host_key_checking':false }"
 
 # Provide input
 ansible-playbook --flush-cache -b --become-user=root -i $DEPLOYMENTSFOLDER/auto.ini \
