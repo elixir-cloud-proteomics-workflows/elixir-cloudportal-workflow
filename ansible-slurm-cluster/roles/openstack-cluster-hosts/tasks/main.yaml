@@ -158,3 +158,26 @@
     regexp: '<bastion_user>'
     replace: "{{ lookup('env','BASTION_USER') }}"
   when: state == "present"
+
+- name: Copy terraform.tfstate template file
+  copy:
+    src: "terraform.blank"
+    dest: "{{ deploymentsfolder }}/terraform.tfstate"
+
+- name: Write Provider ID
+  replace:
+    path: "{{ deploymentsfolder }}/terraform.tfstate"
+    regexp: '<provider_id>'
+    replace: "{{ item.server.name }}"
+  when: state == "present"
+  with_items:
+    - "{{ master_instances.results }}"
+
+- name: Write floating IP
+  replace:
+    path: "{{ deploymentsfolder }}/terraform.tfstate"
+    regexp: '<floating_ip>'
+    replace: "{{ item.server.private_v4 }}"
+  when: state == "present"
+  with_items:
+    - "{{ master_instances.results }}"
