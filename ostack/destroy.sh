@@ -6,17 +6,16 @@ echo "\(^O^)/ Setting up convenience OS_ENV"
 export APP="${PORTAL_APP_REPO_FOLDER}"
 echo "export APP=${APP}"
 # Deployment folder
+export DEPLOYMENTSFOLDER="${PORTAL_DEPLOYMENTS_ROOT}/${PORTAL_DEPLOYMENT_REFERENCE}/"
 export DPL="${PORTAL_DEPLOYMENTS_ROOT}/${PORTAL_DEPLOYMENT_REFERENCE}/"
 echo "export DPL=${DPL}"
 
+export NETWORK=$OS_NETWORK
+export CLUSTER_NAME=$PORTAL_DEPLOYMENT_REFERENCE
+
 echo "\(^O^)/ Will destroy the following"
-# Export input variable in the bash environment
-export TF_VAR_name="$(awk -v var="$PORTAL_DEPLOYMENT_REFERENCE" 'BEGIN {print tolower(var)}')"
-echo $TF_VAR_name
 
-export TF_STATE=${DPL}'/kubespray/inventory/terraform.tfstate'
-echo "export TF_STATE=${TF_STATE}"
 
-echo "\(^O^)/ ICH MUSS ZERSTOEREN ...!"
-# Destroys a virtual machine instance
-terraform destroy --force --input=false --state=$TF_STATE
+# Destroys a virtual machine instance by ansible
+
+ansible-playbook --flush-cache $APP/ansible-remove-cluster/playbook.yml

@@ -1,0 +1,27 @@
+---
+- name: Set type of playbook execution as fact
+  hosts: localhost
+  tasks:
+    - set_fact: 
+        ansiblepurpose: "{{ lookup('env','ansible_purpose') | default('cluster', true) }}" 
+        clustername: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}"
+
+- name: Prepare network access
+  # will read ENV to get 
+  hosts: localhost
+  roles:
+    - openstack-network
+
+- name: Delete instances
+  hosts: localhost
+  pre_tasks:
+    - name: Set variables
+      set_fact:
+        name: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}"
+        state: absent
+        node_count: "{{ lookup('env', 'NODE_COUNT') | default(1, true) }}"
+        master_count: "{{ lookup('env', 'MASTER_COUNT') | default(1, true) }}"
+        deploymentsfolder: "{{ lookup('env', 'DEPLOYMENTSFOLDER') }}"  
+  roles:
+    - openstack-cluster-hosts
+...
