@@ -49,6 +49,12 @@ ansible-playbook --flush-cache -b --become-user=root -i $DEPLOYMENTSFOLDER/auto.
 
 # Extract the result url
 URL=$(cat $DEPLOYMENTSFOLDER/result_get.res)
+OUTPUT_URL=$PORTAL_BASE_URL/deployment/$PORTAL_DEPLOYMENT_REFERENCE/outputs
+echo "OUTPUTS_URL ${OUTPUT_URL}"
+
+curl --insecure -i -X PUT -H "Content-Type: application/json" \
+ -H "Deployment-Secret: ${PORTAL_CALLBACK_SECRET}" \
+ -d "[{\"outputName\":\"URL\",\"generatedValue\":\"${URL}\"}]" "${OUTPUT_URL}"
 
 ansible-playbook --flush-cache -b --become-user=root -i $DEPLOYMENTSFOLDER/auto.ini \
     $APP/ansible-nf-fileinfo/nextflow-playbook.yml -e "{'host_key_checking':false }" \
