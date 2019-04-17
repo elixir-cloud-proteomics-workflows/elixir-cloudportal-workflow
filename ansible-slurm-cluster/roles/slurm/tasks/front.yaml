@@ -40,8 +40,8 @@
 - name: allow the slurm user to acces the slurm logs
   file: path=/tmp/slurmctld.log mode=0644
 
-- name: Reconfigure SLURM
-  become: true
-  become_user: slurm
-  command: scontrol reconfigure
+#- name: Reconfigure SLURM
+#  become: true
+#  become_user: slurm
+#  command: scontrol reconfigure
 

@@ -3,5 +3,4 @@
 # For details about expected inputs and outputs, refer to https://github.com/EMBL-EBI-TSI/openlava
 # The script assumes that env vars for authentication with OpenStack are present.
 
-# Query Terraform state file
-terraform show $PORTAL_DEPLOYMENTS_ROOT'/'$PORTAL_DEPLOYMENT_REFERENCE'/terraform.tfstate'
+cat $PORTAL_DEPLOYMENTS_ROOT'/'$PORTAL_DEPLOYMENT_REFERENCE'/terraform.tfstate'

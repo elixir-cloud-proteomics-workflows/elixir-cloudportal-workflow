@@ -19,7 +19,7 @@
       set_fact:
         name: "{{ lookup('env','CLUSTER_NAME') | default('my-cluster', true) }}"
         state: absent
-        node_count: "{{ lookup('env', 'NODE_COUNT') | default(1, true) }}"
+        node_count: "{{ lookup('env', 'NODE_COUNT') | default(3, true) }}"
         master_count: "{{ lookup('env', 'MASTER_COUNT') | default(1, true) }}"
         deploymentsfolder: "{{ lookup('env', 'DEPLOYMENTSFOLDER') }}"  
   roles:

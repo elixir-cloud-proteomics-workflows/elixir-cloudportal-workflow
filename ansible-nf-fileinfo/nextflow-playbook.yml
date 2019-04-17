@@ -4,7 +4,9 @@
   tasks:
     - copy: src=pxd2qc.nf dest=/mnt/gluster/pxd2qc.nf
     - copy: src=mynextflow.config dest=/mnt/gluster/mynextflow.config
-
+    - copy:
+        content: "result=0"
+        dest: "/mnt/gluster/result.txt"
 # TODO this should be a container (otherwise needs pip installs)!
 - name: Process workflow
   hosts: cluster_masters
@@ -30,6 +32,6 @@
   tasks:
     - command: "cat /mnt/gluster/result_put.res"
       register: up
-    - shell: "curl -k -X PUT -T '/mnt/gluster/result.txt' '{{ up.stdout }}'"
+    - shell: "curl -k -X GET -T '/mnt/gluster/result.txt' '{{ up.stdout }}'"
 
 ...
