@@ -54,12 +54,12 @@
 #       with_items: new_host_fingerprint.stdout_lines
 #       when: state == "present"
 
-- name: Test availability through bastion and make sure python is available  # TODO this fails the first time on occasion WTF WHY?! And does it really take that long? Longer than terraform?
-  gather_facts: no
-  hosts: cluster_masters:cluster_nodes
-  become: yes
-  roles:
-    - provision-test
+#- name: Test availability through bastion and make sure python is available  # TODO this fails the first time on occasion WTF WHY?! And does it really take that long? Longer than terraform?
+#  gather_facts: no
+#  hosts: cluster_masters:cluster_nodes
+#  become: yes
+#  roles:
+#   - provision-test
 
 - name: Set hostname 
   hosts: cluster_masters:cluster_nodes
