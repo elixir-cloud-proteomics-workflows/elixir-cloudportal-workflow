@@ -37,7 +37,7 @@ printf '%(%Y%m%d-%H:%M:%S)T\n'
 cd $DPL
 echo "cwd=$PWD"
 
-export PXD=PXD011124
+export PXD=${TF_VAR_PXD}
 
 # Deploy cluster
 ansible-playbook --flush-cache $APP/ansible-slurm-cluster/playbook.yml -e "{'host_key_checking':false }"
