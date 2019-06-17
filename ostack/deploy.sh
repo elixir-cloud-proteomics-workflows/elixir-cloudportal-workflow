@@ -5,13 +5,22 @@ echo "＼(＾O＾)／ Setting up convenience OS_ENV"
 
 export APP="${PORTAL_APP_REPO_FOLDER}"
 export DEPLOYMENTSFOLDER="${PORTAL_DEPLOYMENTS_ROOT}/${PORTAL_DEPLOYMENT_REFERENCE}/"
-export KEY_PATH=$PUBLIC_KEY
-export PRIV_KEY_PATH=$PRIVATE_KEY
+export DPL="${PORTAL_DEPLOYMENTS_ROOT}/${PORTAL_DEPLOYMENT_REFERENCE}/"
 
 export NETWORK=$OS_NETWORK  # Elixir-Proteomics_private
 
-echo $(echo $BASTION_KEY_VALUE | base64 -d) > "${DEPLOYMENTSFOLDER}/.letmein"
-export BASTION_KEY="${DEPLOYMENTSFOLDER}/.letmein"         #$TF_VAR_BASTION_KEY  # /home/user/.ssh/id_rsa
+export PRIVATE_KEYPATH="${DPL}${PORTAL_DEPLOYMENT_REFERENCE}"
+chmod 600 "${PRIVATE_KEYPATH}"
+export KEYPATH="${DPL}${PORTAL_DEPLOYMENT_REFERENCE}.pub"
+export BASTION_KEY=$(echo -e $BASTION_KEY_VALUE)
+echo "${BASTION_KEY}" >> "${DEPLOYMENTSFOLDER}.letmein"
+chmod 600 "${DEPLOYMENTSFOLDER}.letmein"
+export BASTION_KEY="${DEPLOYMENTSFOLDER}.letmein"
+
+echo "KEYPATH ${KEYPATH}"
+echo "PRIVATE_KEYPATH ${PRIVATE_KEYPATH}"
+
+#$TF_VAR_BASTION_KEY  # /home/user/.ssh/id_rsa
 
 export BASTION_IP=$TF_VAR_BASTION_IP  # 193.62.55.220
 export BASTION_USER=$TF_VAR_BASTION_USER  # sshuser
@@ -28,11 +37,10 @@ printf '%(%Y%m%d-%H:%M:%S)T\n'
 cd $DPL
 echo "cwd=$PWD"
 
-echo "PXD=$PXD"
+export PXD=${TF_VAR_PXD}
 
 # Deploy cluster
-ansible-playbook --flush-cache -b --become-user=root \
-    $APP/ansible-slurm-cluster/playbook.yml -e "{'host_key_checking':false }"
+ansible-playbook --flush-cache $APP/ansible-slurm-cluster/playbook.yml -e "{'host_key_checking':false }"
 
 # Provide input
 ansible-playbook --flush-cache -b --become-user=root -i $DEPLOYMENTSFOLDER/auto.ini \
@@ -41,6 +49,12 @@ ansible-playbook --flush-cache -b --become-user=root -i $DEPLOYMENTSFOLDER/auto.
 
 # Extract the result url
 URL=$(cat $DEPLOYMENTSFOLDER/result_get.res)
+OUTPUT_URL=$PORTAL_BASE_URL/deployment/$PORTAL_DEPLOYMENT_REFERENCE/outputs
+echo "OUTPUTS_URL ${OUTPUT_URL}"
+
+curl --insecure -i -X PUT -H "Content-Type: application/json" \
+ -H "Deployment-Secret: ${PORTAL_CALLBACK_SECRET}" \
+ -d "[{\"outputName\":\"URL\",\"generatedValue\":\"${URL}\"}]" "${OUTPUT_URL}"
 
 ansible-playbook --flush-cache -b --become-user=root -i $DEPLOYMENTSFOLDER/auto.ini \
     $APP/ansible-nf-fileinfo/nextflow-playbook.yml -e "{'host_key_checking':false }" \

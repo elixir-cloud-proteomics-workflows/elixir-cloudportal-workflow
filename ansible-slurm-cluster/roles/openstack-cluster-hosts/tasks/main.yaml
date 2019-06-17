@@ -93,7 +93,7 @@
     name: "{{ item.server.name }}"
     ansible_hostname: "{{ item.server.name }}"
     ansible_host: "{{ item.server.private_v4 }}"  # n.b. ansible_ssh_host is deprecated
-    ansible_ssh_private_key_file: "{{ lookup('env','PRIVATE_KEYPATH') }}" 
+    ansible_ssh_private_key_file: "{{ lookup('env','PRIVATE_KEYPATH') }}"
     ansible_ssh_user: ubuntu 
     ansible_ssh_common_args: "-o ProxyCommand=\"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i {{ lookup('env', 'BASTION_KEY') }} -W %h:%p -q {{ lookup('env','BASTION_USER') }}@{{ lookup('env','BASTION_IP') }}\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
     groupname: cluster_masters
@@ -106,7 +106,7 @@
     name: "{{ item.server.name }}"
     ansible_hostname: "{{ item.server.name }}"
     ansible_host: "{{ item.server.private_v4 }}"  # n.b. ansible_ssh_host is deprecated
-    ansible_ssh_private_key_file: "{{ lookup('env','PRIVATE_KEYPATH') }}" 
+    ansible_ssh_private_key_file: "{{ lookup('env','PRIVATE_KEYPATH') }}"
     ansible_ssh_user: ubuntu 
     ansible_ssh_common_args: "-o ProxyCommand=\"ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i {{ lookup('env', 'BASTION_KEY') }} -W %h:%p -q {{ lookup('env','BASTION_USER') }}@{{ lookup('env','BASTION_IP') }}\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
     groupname: cluster_nodes
@@ -158,3 +158,26 @@
     regexp: '<bastion_user>'
     replace: "{{ lookup('env','BASTION_USER') }}"
   when: state == "present"
+
+- name: Copy terraform.tfstate template file
+  copy:
+    src: "terraform.blank"
+    dest: "{{ deploymentsfolder }}/terraform.tfstate"
+
+- name: Write Provider ID
+  replace:
+    path: "{{ deploymentsfolder }}/terraform.tfstate"
+    regexp: '<provider_id>'
+    replace: "{{ item.server.name }}"
+  when: state == "present"
+  with_items:
+    - "{{ master_instances.results }}"
+
+- name: Write floating IP
+  replace:
+    path: "{{ deploymentsfolder }}/terraform.tfstate"
+    regexp: '<floating_ip>'
+    replace: "{{ item.server.private_v4 }}"
+  when: state == "present"
+  with_items:
+    - "{{ master_instances.results }}"

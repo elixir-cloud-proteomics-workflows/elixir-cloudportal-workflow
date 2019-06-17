@@ -1,0 +1,39 @@
+- name: Get cloud configuration
+  tags: bootstrap
+  os_client_config:
+
+- set_fact:
+    deploymentkeyisset: "{{ lookup('env','KEY') }}"
+    deploymentkeyname: "{{ name }}-key"
+
+- set_fact:
+    deploymentkeyname: "{{ lookup('env','KEY') }}"
+  when: deploymentkeyisset != ""
+
+- name: Delete cluster hosts - master
+  os_server:
+    security_groups:  "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-cluster', true) }},{{ lookup('env','SECURITY_GROUP_GLUSTER') | default('sg-gluster', true) }},galaxy"
+    state: "{{ state }}"
+    name: "{{ name }}-cluster-master-{{ item }}"
+    image: "{{ lookup('env','IMAGE') | default('Ubuntu16.04', true) }}"
+    boot_from_volume: "{{ lookup('env', 'MASTER_BOOT_FROM_VOLUME') | default('False', true) }}"
+    terminate_volume: "{{ lookup('env', 'MASTER_TERMINATE_VOLUME') | default('False', true) }}"
+    volume_size: "{{ lookup('env', 'MASTER_VOLUME_SIZE') | default('64', true) }}"
+    key_name: "{{ deploymentkeyname }}"
+    flavor: "{{ lookup('env','FLAVOR') | default('s1.nano', true) }}"
+    auto_ip: false
+  with_sequence: count={{ master_count }}
+
+- name: Delete cluster hosts - nodes
+  os_server:
+    security_groups:  "{{ lookup('env','SECURITY_GROUP_CLUSTER') | default('sg-cluster', true) }},{{ lookup('env','SECURITY_GROUP_GLUSTER') | default('sg-gluster', true) }},galaxy"  # TODO own sg for nodes?
+    state: "{{ state }}"
+    name: "{{ name }}-cluster-node-{{ item }}"
+    image: "{{ lookup('env','IMAGE') | default('Ubuntu16.04', true) }}"
+    boot_from_volume: "{{ lookup('env', 'MASTER_BOOT_FROM_VOLUME') | default('False', true) }}"
+    terminate_volume: "{{ lookup('env', 'MASTER_TERMINATE_VOLUME') | default('False', true) }}"
+    volume_size: "{{ lookup('env', 'MASTER_VOLUME_SIZE') | default('64', true) }}"
+    key_name: "{{ deploymentkeyname }}"
+    flavor: "{{ lookup('env','FLAVOR') | default('s1.small', true) }}"
+    auto_ip: false
+  with_sequence: count={{ node_count }}

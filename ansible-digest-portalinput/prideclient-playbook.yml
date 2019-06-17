@@ -26,17 +26,22 @@
         path: "{{ item.path }}"
         state: absent
       with_items: "{{ files_to_delete.files }}"
-
+    - copy:
+       content: "https://api.aai.ebi.ac.uk/info"
+       dest: "{{ item }}"
+      with_items:  
+         - "/mnt/gluster/result_put.res"
+         - "/mnt/gluster/result_get.res"
       # TODO this sometimes breaks because of docker image load - repeat in case of failure?
-    - shell: "singularity exec --bind /mnt/gluster:/mnt/gluster docker://mwalzer/prideapiclient:v0.0.2 \
-                python /usr/local/bin/pride-cloud-client -p {{ lookup('env','PXD') }} \
-                -d {{ lookup('env','PORTAL_DEPLOYMENT_REFERENCE') }} \
-                --redis_host {{ lookup('env','REDIS_HOST') }} \
-                --redis_port {{ lookup('env','REDIS_PORT') }} \
-                --redis_db {{ lookup('env','REDIS_DB') }} \
-                --timeout 10"
-      args:
-        chdir: /mnt/gluster
+#    - shell: "singularity exec --bind /mnt/gluster:/mnt/gluster docker://mwalzer/prideapiclient:v0.0.2 \
+#               python /usr/local/bin/pride-cloud-client -p {{ lookup('env','PXD') }} \
+#               -d {{ lookup('env','PORTAL_DEPLOYMENT_REFERENCE') }} \
+#               --redis_host {{ lookup('env','REDIS_HOST') }} \
+#               --redis_port {{ lookup('env','REDIS_PORT') }} \
+#               --redis_db {{ lookup('env','REDIS_DB') }} \
+#               --timeout 10"
+#      args:
+#        chdir: /mnt/gluster
 
 - name: Copy progress bar result
   hosts: cluster_masters
@@ -48,7 +53,7 @@
   tasks:
     - command: "cat /mnt/gluster/result_put.res"
       register: up
-    - shell: "curl -k -X PUT -T '/tmp/progress.html' '{{ up.stdout }}'"
+    - shell: "curl -k -X GET -T '/tmp/progress.html' '{{ up.stdout }}'"
     # - debug:
     #     msg: "curl -k -X PUT -T '/tmp/progress.html' '{{ up.stdout }}'"
 - name: Report result URL
@@ -56,7 +61,8 @@
   tasks:
     - fetch:
         src: "/mnt/gluster/result_get.res"
-        dest: "{{ lookup('env','DEPLOYMENTSFOLDER') }}/result_get.res"
+        dest: "{{ lookup('env','DEPLOYMENTSFOLDER') }}result_get.res"
+        flat: yes
     - command: "cat /mnt/gluster/result_get.res"
       register: res
     - debug:

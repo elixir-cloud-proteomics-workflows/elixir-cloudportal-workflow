@@ -10,7 +10,7 @@
      "inputs":[]
     }
   ],
-  "inputs": ["PXD"],
+  "inputs": [{"name":"PXD","values":["PXD011124"]}],
   "deploymentParameters": [],
   "outputs": ["URL"]
 }

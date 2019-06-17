@@ -44,4 +44,5 @@
   become: true
   become_user: slurm
   command: scontrol reconfigure
+  ignore_errors: yes
 

@@ -59,7 +59,7 @@
   hosts: cluster_masters:cluster_nodes
   become: yes
   roles:
-    - provision-test
+   - provision-test
 
 - name: Set hostname 
   hosts: cluster_masters:cluster_nodes
